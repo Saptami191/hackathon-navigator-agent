@@ -1,6 +1,6 @@
 # Hackathon Navigator Agent
 
-A full-stack application for navigating and discovering hackathon opportunities with AI-powered agent support.
+A full-stack application for discovering hackathon opportunities with AI-powered agent support.
 
 ## Project Structure
 
@@ -36,19 +36,19 @@ hackathon-navigator-agent/
 ## Prerequisites
 
 - **Backend**: Python 3.11+, Poetry
-- **Frontend**: Node.js 20+, npm/yarn
-- **Docker** (optional, for containerized setup)
+- **Frontend**: Node.js 20+, npm or yarn
+- **Optional**: Docker and Docker Compose
 
-## Setup & Installation
+## Local Setup
 
-### Backend Setup
+### Backend
 
-1. Navigate to backend directory:
+1. Change into the backend directory:
    ```bash
    cd backend
    ```
 
-2. Create environment file:
+2. Copy the example environment file:
    ```bash
    cp .env.example .env
    ```
@@ -58,23 +58,23 @@ hackathon-navigator-agent/
    poetry install
    ```
 
-4. Start the backend server:
+4. Start the backend in development mode:
    ```bash
    poetry run uvicorn app.main:app --reload
    ```
 
-The API will be available at `http://localhost:8000`
+- Backend API: `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
-API Documentation: `http://localhost:8000/docs` (Swagger UI)
+### Frontend
 
-### Frontend Setup
-
-1. Navigate to frontend directory:
+1. Change into the frontend directory:
    ```bash
    cd frontend
    ```
 
-2. Create environment file:
+2. Copy the example environment file:
    ```bash
    cp .env.local.example .env.local
    ```
@@ -82,44 +82,40 @@ API Documentation: `http://localhost:8000/docs` (Swagger UI)
 3. Install dependencies:
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
-4. Start the development server:
+4. Start the frontend:
    ```bash
    npm run dev
-   # or
-   yarn dev
    ```
 
-The app will be available at `http://localhost:3000`
+- Frontend app: `http://localhost:3000`
 
-## Docker Setup (Recommended for Development)
+## Docker Setup
 
-Run both services with all dependencies using Docker Compose:
+Use Docker Compose to run the full stack with PostgreSQL and Redis:
 
 ```bash
 docker-compose up -d
 ```
 
-This will start:
-- **Backend**: http://localhost:8000
-- **Frontend**: http://localhost:3000
-- **PostgreSQL**: localhost:5432
-- **Redis**: localhost:6379
+Services:
+- Backend: `http://localhost:8000`
+- Frontend: `http://localhost:3000`
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
 
-### Useful Docker Commands
+Useful commands:
 
 ```bash
-# View logs
+# Follow logs
 docker-compose logs -f
 
 # Stop services
 docker-compose down
 
 # Rebuild services
-docker-compose up --build
+docker-compose up --build -d
 ```
 
 ## Available Scripts
@@ -127,77 +123,67 @@ docker-compose up --build
 ### Backend
 
 ```bash
-poetry run uvicorn app.main:app --reload    # Development server
-poetry run pytest                            # Run tests
-poetry run black .                           # Code formatting
-poetry run mypy app                          # Type checking
-poetry run flake8 app                        # Linting
+poetry run uvicorn app.main:app --reload
+poetry run pytest
+poetry run ruff .
+poetry run mypy app
 ```
 
 ### Frontend
 
 ```bash
-npm run dev          # Development server
-npm run build        # Production build
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run type-check   # TypeScript type checking
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run type-check
 ```
 
 ## Environment Variables
 
-### Backend (.env)
-- `ENVIRONMENT`: Development/production
-- `DATABASE_URL`: PostgreSQL connection string
-- `GITHUB_TOKEN`: GitHub API token
-- `OPENAI_API_KEY`: OpenAI API key
-- `ANTHROPIC_API_KEY`: Anthropic API key
+### Backend (`backend/.env`)
+- `ENVIRONMENT` - app environment, e.g. `development` or `production`
+- `DATABASE_URL` - PostgreSQL connection string
+- `REDIS_URL` - Redis connection string
+- `GITHUB_TOKEN` - GitHub API token
+- `OPENAI_API_KEY` - OpenAI API key
+- `ANTHROPIC_API_KEY` - Anthropic API key
+- `SECRET_KEY` - JWT secret for auth
+- `CORS_ORIGINS` - allowed frontend origins
 
-### Frontend (.env.local)
-- `NEXT_PUBLIC_API_BASE_URL`: Backend API URL
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Clerk authentication key
+### Frontend (`frontend/.env.local`)
+- `NEXT_PUBLIC_API_BASE_URL` - backend API URL
+- `NEXT_PUBLIC_API_VERSION` - API version
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk publishable key
 
-See `.env.example` and `.env.local.example` for complete configurations.
+Refer to `backend/.env.example` and `frontend/.env.local.example` for full examples.
 
-## API Documentation
+## Development Notes
 
-Once the backend is running, visit:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- Python backend is built with FastAPI, SQLAlchemy, Celery, and async services.
+- Frontend uses Next.js 15, React 18, Tailwind CSS, Clerk auth, and React Query.
 
-## Development
-
-### Code Style
-
-- **Python**: Black, Flake8, MyPy
-- **TypeScript/JavaScript**: ESLint, Prettier
-- **CSS**: Tailwind CSS
-
-### Testing
+## Testing
 
 ```bash
 # Backend tests
 cd backend && poetry run pytest
 
-# Frontend tests
-cd frontend && npm test
+# Frontend type check
+cd frontend && npm run type-check
 ```
 
 ## Deployment
 
-### Docker Build
+Build images for production:
 
 ```bash
-# Build backend
 docker build -t hackathon-nav-backend:latest ./backend
-
-# Build frontend
 docker build -t hackathon-nav-frontend:latest ./frontend
 ```
 
-### Production Environment
+For production, update environment variables and run with your preferred container orchestration or cloud provider.
 
-Update environment variables for production in:
 - `backend/.env`
 - `frontend/.env.local`
 
