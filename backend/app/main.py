@@ -19,6 +19,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting Hackathon Navigator API")
     async with engine.begin() as conn:
+        # create legacy tables and new evaluation tables
         await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown
@@ -66,11 +67,6 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # ─── Include routers ──────────────────────────────────────────────────────────
 
-from api.routes import projects, analysis, tasks, pitches, github, health
+from api.routes import router as api_router
 
-app.include_router(health.router, prefix="/api/v1")
-app.include_router(projects.router, prefix="/api/v1")
-app.include_router(analysis.router, prefix="/api/v1")
-app.include_router(tasks.router, prefix="/api/v1")
-app.include_router(pitches.router, prefix="/api/v1")
-app.include_router(github.router, prefix="/api/v1")
+app.include_router(api_router, prefix="/api/v1")
