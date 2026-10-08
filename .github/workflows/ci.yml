@@ -37,7 +37,7 @@ jobs:
           --health-retries 5
 
     env:
-      SECRET_KEY: ci-test-secret-key
+      SECRET_KEY: ci-test-secret-key-for-github-actions-123456
       DATABASE_URL: postgresql+asyncpg://ci:ci@localhost:5432/hackathon_test
       REDIS_URL: redis://localhost:6379/0
 
@@ -93,7 +93,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
 
       - name: Install dependencies
         working-directory: frontend
