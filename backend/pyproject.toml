@@ -3,6 +3,11 @@ name = "hackathon-navigator-backend"
 version = "0.1.0"
 description = "Hackathon Navigator Agent Backend"
 authors = ["Your Team <team@example.com>"]
+packages = [
+  { include = "app" },
+  { include = "db" },
+  { include = "workers" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
