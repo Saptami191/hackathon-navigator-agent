@@ -18,6 +18,7 @@ from langgraph.graph.message import add_messages
 from core.config import settings
 from services.github_service import GitHubService, RepoAnalysis
 from services.rag_service import RAGService
+from agents.judging_agent import judging_agent_node
 
 logger = structlog.get_logger(__name__)
 
@@ -36,6 +37,7 @@ class AgentState(TypedDict):
     # Populated by agents
     repo_analysis: dict[str, Any] | None
     architecture_summary: str | None
+    judging_assessment: dict[str, Any] | None
     tech_stack: list[str]
     tasks: list[dict[str, Any]]
     blockers: list[dict[str, Any]]
@@ -199,6 +201,16 @@ async def planner_node(state: AgentState) -> dict[str, Any]:
 
     repo_summary = json.dumps(state.get("repo_analysis") or {}, indent=2)[:3000]
     context = "\n\n---\n\n".join(context_chunks[:4])
+    judging_assessment = state.get("judging_assessment") or {}
+    judging_context = json.dumps(
+        {
+            "overall_score": judging_assessment.get("overall_score"),
+            "top_actions": judging_assessment.get("top_actions", []),
+            "critical_gaps": judging_assessment.get("critical_gaps", []),
+            "criteria": judging_assessment.get("criteria", []),
+        },
+        indent=2,
+    )
 
     prompt = f"""You are a senior hackathon strategist. Generate a precise, prioritized task plan.
 
@@ -215,6 +227,20 @@ REPOSITORY STATE:
 CODEBASE CONTEXT:
 {context}
 
+JUDGING ASSESSMENT:
+{judging_context}
+
+IMPORTANT:
+Prioritize tasks that directly address the judging gaps.
+
+For each task, consider:
+- Expected judging score improvement
+- Implementation effort
+- Demo impact
+- Technical importance
+
+Prefer high score improvement with low implementation effort.
+
 Generate a JSON response with this exact structure:
 {{
   "tasks": [
@@ -226,6 +252,7 @@ Generate a JSON response with this exact structure:
       "estimated_hours": 0.5,
       "is_blocker": false,
       "impact_score": 8.5,
+    "expected_score_gain": 7,
       "rationale": "Why this matters for winning"
     }}
   ],
@@ -241,8 +268,8 @@ Generate a JSON response with this exact structure:
   "scope_reduction_suggestions": []
 }}
 
-Prioritize by: (1) demo-ability for judges, (2) core functionality, (3) polish.
-Generate 8-15 tasks. Be specific and actionable."""
+Prioritize by expected score gain per implementation effort, while accounting for demo impact and technical importance.
+Generate 8-15 tasks. Be specific and actionable. Include expected_score_gain for every task, based on the judging assessment."""
 
     try:
         response = await llm.ainvoke([HumanMessage(content=prompt)])
@@ -527,6 +554,7 @@ Be realistic. A hackathon team can do ~6 effective hours per day."""
         final_report = {
             "project_id": state["project_id"],
             "project_name": state["project_name"],
+            "judging_assessment": state.get("judging_assessment"),
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "risk_level": risk_level,
             "completion_percentage": completion,
@@ -586,6 +614,7 @@ def build_supervisor_graph() -> StateGraph:
     graph = StateGraph(AgentState)
 
     graph.add_node("repo_analyst", repo_analyst_node)
+    graph.add_node("judging_agent", judging_agent_node)
     graph.add_node("planner", planner_node)
     graph.add_node("tech_reviewer", tech_reviewer_node)
     graph.add_node("pitch_generator", pitch_generator_node)
@@ -593,7 +622,8 @@ def build_supervisor_graph() -> StateGraph:
 
     graph.set_entry_point("repo_analyst")
 
-    graph.add_edge("repo_analyst", "planner")
+    graph.add_edge("repo_analyst", "judging_agent")
+    graph.add_edge("judging_agent", "planner")
     graph.add_edge("planner", "tech_reviewer")
     graph.add_edge("tech_reviewer", "pitch_generator")
     graph.add_edge("pitch_generator", "deadline_manager")
@@ -639,6 +669,7 @@ async def run_analysis(
         agents_completed=[],
         error=None,
         final_report=None,
+        judging_assessment=None,
     )
 
     result = await supervisor_graph.ainvoke(initial_state)
