@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SignInButton, SignUpButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
 import {
   Github,
   Zap,
@@ -22,7 +22,7 @@ export default function LandingPage() {
           <span className="text-xl font-bold tracking-tight">Hackathon Navigator</span>
         </div>
         <div className="flex items-center gap-4">
-          <SignedOut>
+          <Show when="signed-out">
             <SignInButton mode="modal">
               <button className="text-gray-400 hover:text-white transition-colors text-sm">
                 Sign in
@@ -33,15 +33,15 @@ export default function LandingPage() {
                 Get started free
               </button>
             </SignUpButton>
-          </SignedOut>
-          <SignedIn>
+          </Show>
+          <Show when="signed-in">
             <Link
               href="/dashboard"
               className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
             >
               Dashboard <ArrowRight className="w-4 h-4" />
             </Link>
-          </SignedIn>
+          </Show>
         </div>
       </nav>
 

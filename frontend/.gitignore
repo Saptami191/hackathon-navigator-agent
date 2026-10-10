@@ -37,3 +37,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 .cache/
+
+tsconfig.tsbuildinfo
+
+tsconfig.tsbuildinfo

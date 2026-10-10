@@ -15,7 +15,7 @@ import {
   pitchesApi,
   projectsApi,
   tasksApi,
-} from "@/lib/api";
+} from "../lib/api";
 
 function useApiClient() {
   const { getToken } = useAuth();

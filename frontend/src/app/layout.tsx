@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Providers } from "@/components/providers";
+import { Providers } from "./providers/providers";
 import { Toaster } from "sonner";
 import "./globals.css";
 
